@@ -5,10 +5,10 @@ import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
-import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -46,12 +46,17 @@ public class RabbitmqConfig {
 
     @Bean
     public Queue queue() {
-        return new Queue("", true);
+        return new Queue("test.queue", true);
     }
 
     @Bean
     public Binding binding() {
-        return BindingBuilder.bind(queue()).to(exchange()).with("");
+        return BindingBuilder.bind(queue()).to(exchange()).with("test.queue.routingKey");
+    }
+
+    @Bean
+    public RabbitAdmin rabbitAdmin() {
+        return new RabbitAdmin(connectionFactory());
     }
 
     @Bean
@@ -63,5 +68,12 @@ public class RabbitmqConfig {
         cachingConnectionFactory.setPassword(password);
         cachingConnectionFactory.setVirtualHost(virtualHost);
         return cachingConnectionFactory;
+    }
+
+    @Bean
+    public RabbitTemplate rabbitTemplate() {
+        RabbitTemplate template = new RabbitTemplate(connectionFactory());
+        template.setExchange(exchange);
+        return template;
     }
 }
